@@ -32,7 +32,7 @@ Each lab builds a fresh cluster and **breaks it on purpose**. You fix it under a
 ## Quick start
 
 ```powershell
-git clone https://github.com/<you>/cks-minikube-labs.git
+git clone https://github.com/regiin09/cks-minikube-labs.git
 cd cks-minikube-labs/03-falco-dev-mem
 
 ./setup.ps1                                   # 2–8 min: builds the node and breaks it. Then start your timer
