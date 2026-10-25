@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shop-ingress
+  namespace: shop
+  annotations:
+    ingress.cilium.io/force-https: enabled            # Cilium's own redirect annotation (301)
+spec:
+  ingressClassName: cilium
+  tls:
+  - hosts:
+    - shop.example.local                              # must match the rule host
+    secretName: shop-tls                              # same namespace as the Ingress
+  rules:
+  - host: shop.example.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: shop-app
+            port:
+              number: 80

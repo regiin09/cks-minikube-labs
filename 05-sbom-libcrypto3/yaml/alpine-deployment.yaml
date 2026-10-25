@@ -1,0 +1,32 @@
+# Template. setup.ps1 shuffles the three alpine tags across the containers each run,
+# then copies the result to the node at /opt/course/05/alpine-deployment.yaml and applies it.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: alpine
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alpine
+  namespace: alpine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alpine
+  template:
+    metadata:
+      labels:
+        app: alpine
+    spec:
+      containers:
+      - name: alpine-a
+        image: alpine:__IMG_A__
+        command: ["sleep", "infinity"]
+      - name: alpine-b
+        image: alpine:__IMG_B__
+        command: ["sleep", "infinity"]
+      - name: alpine-c
+        image: alpine:__IMG_C__
+        command: ["sleep", "infinity"]

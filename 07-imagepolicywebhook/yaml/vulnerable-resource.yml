@@ -1,0 +1,17 @@
+# Copied to the node as /root/q07/vulnerable-resource.yml. Must be REJECTED when you're done.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vulnerable
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: vulnerable}
+  template:
+    metadata:
+      labels: {app: vulnerable}
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest

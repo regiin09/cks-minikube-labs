@@ -1,0 +1,19 @@
+# Helm values for Cilium 1.20.3 with the Cilium Ingress controller (IngressClass "cilium").
+# The ingress controller needs Cilium's own service handling (kube-proxy replacement),
+# so the BPF datapath can steer traffic for the ingress Service into the Envoy proxy.
+kubeProxyReplacement: true
+k8sServiceHost: control-plane.minikube.internal   # API server address without kube-proxy
+k8sServicePort: 8443
+ingressController:
+  enabled: true
+  default: false                 # Ingresses must name ingressClassName: cilium
+  loadbalancerMode: shared       # one Service (kube-system/cilium-ingress) for all Ingresses
+  enforceHttps: false            # chart default is TRUE (global 308 for every TLS host).
+                                 # OFF here, so you must ask for the redirect per Ingress
+                                 # with the annotation ingress.cilium.io/force-https.
+  service:
+    type: NodePort               # no cloud LB on minikube: fixed node ports instead
+    insecureNodePort: 30080
+    secureNodePort: 30443
+operator:
+  replicas: 1

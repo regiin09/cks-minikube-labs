@@ -1,0 +1,78 @@
+# Starting state: namespace shop is NOT in the mesh yet (no istio-injection label),
+# so Deployment web starts WITHOUT a sidecar. Namespace legacy stays outside the mesh.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shop
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27-alpine
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: 20m
+            memory: 32Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: shop
+spec:
+  selector:
+    app: web
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: legacy
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: legacy-client
+  namespace: legacy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: legacy-client
+  template:
+    metadata:
+      labels:
+        app: legacy-client
+    spec:
+      containers:
+      - name: curl
+        image: curlimages/curl:8.11.1
+        command: ["sleep", "infinity"]
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi

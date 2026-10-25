@@ -1,0 +1,9 @@
+# SOLUTION: /etc/falco/falco_rules.local.yaml
+- rule: Pod accessing /dev/mem
+  desc: A process inside a container opened /dev/mem (raw physical memory)
+  condition: >
+    evt.type in (open, openat, openat2)
+    and fd.name = /dev/mem
+    and container.id != host
+  output: "%evt.time,%container.id,%k8s.ns.name,%k8s.pod.name,%proc.name"
+  priority: WARNING

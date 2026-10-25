@@ -1,0 +1,26 @@
+# SOLUTION. Replace ALLOWED with the namespace from /opt/course/11/task.txt
+# (solve.sh does it for you).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all-ingress
+  namespace: prod
+spec:
+  podSelector: {}            # all Pods in prod
+  policyTypes:
+  - Ingress                  # no ingress rules = deny all ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-ALLOWED
+  namespace: prod
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ALLOWED

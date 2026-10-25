@@ -1,0 +1,58 @@
+# SOLUTION: the three CiliumNetworkPolicies.
+
+# 1. Only Pods from namespace "checkout" may reach the "api" Pods on 80/TCP,
+#    and only with mutual authentication (SPIRE).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: api-ingress
+  namespace: payments
+spec:
+  endpointSelector:
+    matchLabels:
+      app: api
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        k8s:io.kubernetes.pod.namespace: checkout
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
+    authentication:
+      mode: "required"
+---
+# 2. The node (host) may reach the "metrics" Pods on 80/TCP, no mutual auth.
+#    Everything else to "metrics" is denied (the policy puts them in default-deny).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: metrics-from-host
+  namespace: payments
+spec:
+  endpointSelector:
+    matchLabels:
+      app: metrics
+  ingress:
+  - fromEntities:
+    - host
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
+---
+# 3. Pods in "checkout" must not reach the internet (entity "world"), but all
+#    other egress keeps working. egressDeny always wins over allow rules.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: deny-world
+  namespace: checkout
+spec:
+  endpointSelector: {}
+  egress:
+  - toEntities:
+    - all
+  egressDeny:
+  - toEntities:
+    - world

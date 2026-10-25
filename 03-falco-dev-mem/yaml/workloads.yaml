@@ -1,0 +1,61 @@
+# Template. setup.ps1 replaces __JOB_<NAME>__ with a base64 job script (one of them reads /dev/mem,
+# chosen at random each setup) and applies the result. All three look the same on purpose:
+# find the bad one with Falco, not by reading YAML.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nvidia
+  namespace: ai
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: nvidia}}
+  template:
+    metadata: {labels: {app: nvidia}}
+    spec:
+      containers:
+      - name: worker
+        image: busybox:1.36
+        env: [{name: JOB, value: "__JOB_NVIDIA__"}]
+        command: ["sh", "-c", "eval \"$(echo $JOB | base64 -d)\""]
+        securityContext: {privileged: true}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cpu
+  namespace: ai
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: cpu}}
+  template:
+    metadata: {labels: {app: cpu}}
+    spec:
+      containers:
+      - name: worker
+        image: busybox:1.36
+        env: [{name: JOB, value: "__JOB_CPU__"}]
+        command: ["sh", "-c", "eval \"$(echo $JOB | base64 -d)\""]
+        securityContext: {privileged: true}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: ai
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: ollama}}
+  template:
+    metadata: {labels: {app: ollama}}
+    spec:
+      containers:
+      - name: worker
+        image: busybox:1.36
+        env: [{name: JOB, value: "__JOB_OLLAMA__"}]
+        command: ["sh", "-c", "eval \"$(echo $JOB | base64 -d)\""]
+        securityContext: {privileged: true}

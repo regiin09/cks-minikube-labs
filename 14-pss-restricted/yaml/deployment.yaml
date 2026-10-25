@@ -1,0 +1,39 @@
+# Template. setup.ps1 keeps 2 of the 5 "#x:" extras at random (and always the 4 base
+# violations: no allowPrivilegeEscalation, no capabilities drop, no runAsNonRoot, no seccompProfile),
+# strips the markers, copies the result to /opt/course/14/deployment.yaml on the node and applies it.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-server
+  namespace: team-red
+  labels:
+    app: web-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-server
+  template:
+    metadata:
+      labels:
+        app: web-server
+    spec:
+      hostNetwork: true                         #x:hostnet
+      containers:
+      - name: nginx
+        image: nginxinc/nginx-unprivileged:1.27-alpine
+        ports:
+        - containerPort: 8080
+        securityContext:
+          readOnlyRootFilesystem: false
+          privileged: true                      #x:privileged
+          runAsUser: 0                          #x:root
+          capabilities:                         #x:netadmin
+            add: ["NET_ADMIN"]                  #x:netadmin
+        volumeMounts:                           #x:hostpath
+        - name: host-logs                       #x:hostpath
+          mountPath: /host-logs                 #x:hostpath
+      volumes:                                  #x:hostpath
+      - name: host-logs                         #x:hostpath
+        hostPath:                               #x:hostpath
+          path: /var/log                        #x:hostpath

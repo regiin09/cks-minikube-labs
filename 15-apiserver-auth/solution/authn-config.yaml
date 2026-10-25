@@ -1,0 +1,12 @@
+# /etc/kubernetes/authn/authn-config.yaml
+# Anonymous requests are allowed ONLY for the health endpoints the kubelet probes use.
+# Everything else from an unauthenticated client gets 401.
+# Use this INSTEAD of --anonymous-auth=false (the apiserver refuses to start with both).
+apiVersion: apiserver.config.k8s.io/v1
+kind: AuthenticationConfiguration
+anonymous:
+  enabled: true
+  conditions:
+  - path: /livez
+  - path: /readyz
+  - path: /healthz

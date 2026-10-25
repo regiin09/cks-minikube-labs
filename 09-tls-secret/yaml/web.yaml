@@ -1,0 +1,80 @@
+# Template. break-node.sh replaces __SECRET__ with a random Secret name each setup and applies it.
+# The Secret itself is NOT created: that is the task.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: secure
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-nginx-conf
+  namespace: secure
+data:
+  default.conf: |
+    server {
+      listen 443 ssl;
+      server_name web.secure.svc web.secure.svc.cluster.local;
+      ssl_certificate     /etc/nginx/tls/tls.crt;
+      ssl_certificate_key /etc/nginx/tls/tls.key;
+      ssl_protocols       TLSv1.2 TLSv1.3;
+      location / {
+        default_type text/plain;
+        return 200 "secure web OK\n";
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: secure
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        ports:
+        - containerPort: 443
+          name: https
+        readinessProbe:
+          httpGet:
+            scheme: HTTPS
+            port: 443
+            path: /
+          periodSeconds: 5
+        volumeMounts:
+        - name: conf
+          mountPath: /etc/nginx/conf.d
+          readOnly: true
+        - name: certs
+          mountPath: /etc/nginx/tls
+          readOnly: true
+      volumes:
+      - name: conf
+        configMap:
+          name: web-nginx-conf
+      - name: certs
+        secret:
+          secretName: __SECRET__
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: secure
+spec:
+  selector:
+    app: web
+  ports:
+  - name: https
+    port: 443
+    targetPort: 443

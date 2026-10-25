@@ -1,0 +1,6 @@
+# SOLUTION fragment for /etc/kubernetes/manifests/etcd.yaml on the node.
+# Fix only these lines in spec.containers[0].command; kubelet restarts etcd by itself.
+    - --client-cert-auth=true          # CIS 2.2  (was false)
+    # - --auto-tls=true                # CIS 2.3  delete this line (or set false)
+    # - --peer-auto-tls=true           # CIS 2.6  delete this line (or set false)
+    - --data-dir=/var/lib/minikube/etcd  # unchanged; this is the dir for CIS 1.1.11 / 1.1.12

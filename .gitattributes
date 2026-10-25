@@ -1,0 +1,5 @@
+# Most files end up inside Linux nodes (scripts, manifests, Dockerfiles): always LF,
+# even on Windows checkouts.
+*       text=auto eol=lf
+# PowerShell runs on the host.
+*.ps1   text eol=crlf

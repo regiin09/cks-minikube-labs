@@ -1,0 +1,41 @@
+# Optional: run kube-bench as a Job instead of on the node over SSH.
+#   kubectl --context cks-q01 apply -f yaml/kube-bench-job.yaml
+#   kubectl --context cks-q01 wait --for=condition=complete job/kube-bench --timeout=120s
+#   kubectl --context cks-q01 logs job/kube-bench | grep -E "FAIL|PASS" | grep -E " (1\.1\.1[12]|2\.[236]|4\.2\.[12]) "
+#   kubectl --context cks-q01 delete job kube-bench
+# Paths match minikube: certs and etcd data live under /var/lib/minikube.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kube-bench
+  namespace: default
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      hostPID: true            # kube-bench reads kubelet/etcd flags from host processes
+      restartPolicy: Never
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+      containers:
+      - name: kube-bench
+        image: docker.io/aquasec/kube-bench:v0.16.0
+        command: ["kube-bench", "run", "--targets", "master,etcd,node"]
+        volumeMounts:
+        - { name: var-lib-minikube, mountPath: /var/lib/minikube, readOnly: true }
+        - { name: var-lib-kubelet,  mountPath: /var/lib/kubelet,  readOnly: true }
+        - { name: etc-systemd,      mountPath: /etc/systemd,      readOnly: true }
+        - { name: etc-kubernetes,   mountPath: /etc/kubernetes,   readOnly: true }
+        - { name: etc-passwd,       mountPath: /etc/passwd,       readOnly: true }   # so stat shows etcd:etcd, not a uid
+        - { name: etc-group,        mountPath: /etc/group,        readOnly: true }
+      volumes:
+      - { name: var-lib-minikube, hostPath: { path: /var/lib/minikube } }
+      - { name: var-lib-kubelet,  hostPath: { path: /var/lib/kubelet } }
+      - { name: etc-systemd,      hostPath: { path: /etc/systemd } }
+      - { name: etc-kubernetes,   hostPath: { path: /etc/kubernetes } }
+      - { name: etc-passwd,       hostPath: { path: /etc/passwd, type: File } }
+      - { name: etc-group,        hostPath: { path: /etc/group,  type: File } }

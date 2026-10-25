@@ -1,0 +1,36 @@
+apiVersion: audit.k8s.io/v1 # This is required.
+kind: Policy
+# Don't generate audit events for all requests in RequestReceived stage.
+omitStages:
+  - "RequestReceived"
+rules:
+  # 1. FIRST: drop the noisy kube-proxy watches (first match wins, so None must come
+  #    before the broad "core at Request" rule, or it never matches)
+  - level: None
+    users: ["system:kube-proxy"]
+    verbs: ["watch"]
+    resources:
+    - group: ""                      # core API group
+      resources: ["endpoints", "services"]
+
+  # 2. namespace changes with request AND response bodies
+  - level: RequestResponse
+    resources:
+    - group: ""
+      resources: ["namespaces"]
+
+  # 3. request body of secret changes in namespace web
+  - level: Request
+    resources:
+    - group: ""
+      resources: ["secrets"]
+    namespaces: ["web"]
+
+  # 4. all other resources in core and extensions at Request
+  - level: Request
+    resources:
+    - group: ""                      # core API group
+    - group: "extensions"            # version is NOT part of the group
+
+  # 5. LAST: catch-all, everything else at Metadata
+  - level: Metadata

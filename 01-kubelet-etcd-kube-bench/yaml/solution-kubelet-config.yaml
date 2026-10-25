@@ -1,0 +1,16 @@
+# SOLUTION fragment for /var/lib/kubelet/config.yaml on the node.
+# Only these two blocks change; leave the rest of the file as it is.
+# Then: systemctl daemon-reload && systemctl restart kubelet
+authentication:
+  anonymous:
+    enabled: false        # CIS 4.2.1  (--anonymous-auth=false)
+  webhook:
+    cacheTTL: 0s
+    enabled: true
+  x509:
+    clientCAFile: /var/lib/minikube/certs/ca.crt
+authorization:
+  mode: Webhook           # CIS 4.2.2  (--authorization-mode=Webhook, never AlwaysAllow)
+  webhook:
+    cacheAuthorizedTTL: 0s
+    cacheUnauthorizedTTL: 0s

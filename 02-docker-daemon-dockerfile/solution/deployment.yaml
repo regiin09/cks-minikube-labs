@@ -1,0 +1,30 @@
+# SOLUTION: fixed /opt/course/02/deployment.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: secure-app
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: secure-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: busybox:1.36
+        command: ["sh", "-c", "echo running as $(id -u); sleep 1d"]
+        securityContext:
+          runAsUser: 65535                 # was 0
+          privileged: false                # was true
+          allowPrivilegeEscalation: false  # was true
+          readOnlyRootFilesystem: true     # was false

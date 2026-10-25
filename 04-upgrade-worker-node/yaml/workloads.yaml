@@ -1,0 +1,47 @@
+# Workloads that make the drain flags matter:
+#  - kube-proxy DaemonSet (already there)  -> needs --ignore-daemonsets
+#  - "cache" uses emptyDir                 -> needs --delete-emptydir-data
+#  - "standalone" has no controller         -> needs --force (it is lost, by design)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: default
+spec:
+  replicas: 4
+  selector: {matchLabels: {app: web}}
+  template:
+    metadata: {labels: {app: web}}
+    spec:
+      containers:
+      - name: web
+        image: registry.k8s.io/pause:3.10.1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache
+  namespace: default
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: cache}}
+  template:
+    metadata: {labels: {app: cache}}
+    spec:
+      nodeSelector: {kubernetes.io/hostname: __WORKER__}
+      containers:
+      - name: cache
+        image: registry.k8s.io/pause:3.10.1
+        volumeMounts: [{name: tmp, mountPath: /cache}]
+      volumes: [{name: tmp, emptyDir: {}}]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: standalone
+  namespace: default
+spec:
+  nodeName: __WORKER__
+  containers:
+  - name: s
+    image: registry.k8s.io/pause:3.10.1

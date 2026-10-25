@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: secure-ingress
+  namespace: web
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"     # a STRING, quoted
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - secure.example.local                               # must match the rule host
+    secretName: secure-tls                               # same namespace as the Ingress
+  rules:
+  - host: secure.example.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-app
+            port:
+              number: 80

@@ -1,0 +1,22 @@
+# Helm values for Cilium 1.20.3 with SPIRE mutual authentication.
+authentication:
+  enabled: true
+  mutual:
+    spire:
+      enabled: true
+      install:
+        enabled: true
+        server:
+          dataStorage:
+            enabled: false          # emptyDir is fine for a throwaway lab
+          image:
+            # the chart's default SPIRE 1.15.3 server stops right after starting on
+            # this minikube/WSL2 setup (health port never opens); 1.9.6 works
+            override: ghcr.io/spiffe/spire-server:1.9.6
+        agent:
+          image:
+            override: ghcr.io/spiffe/spire-agent:1.9.6
+operator:
+  replicas: 1
+debug:
+  enabled: true                     # agent logs show "Successfully authenticated"

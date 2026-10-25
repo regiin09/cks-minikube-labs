@@ -1,0 +1,8 @@
+# Applied by setup. Do NOT change these labels during the task.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-red
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
