@@ -1,5 +1,7 @@
 # CKS minikube labs
 
+![labs](https://img.shields.io/badge/labs-16-blue) ![kubernetes](https://img.shields.io/badge/kubernetes-v1.35-326ce5?logo=kubernetes&logoColor=white) ![minikube](https://img.shields.io/badge/minikube-v1.38%2B-f7931e) ![license](https://img.shields.io/badge/license-MIT-green)
+
 Hands-on practice labs for the **Certified Kubernetes Security Specialist (CKS)** exam, running on your own machine with **minikube**.
 
 Each lab builds a fresh cluster and **breaks it on purpose**. You fix it under a timer, like on the exam, and then a **grader** checks your work: the config files *and* what actually happens in the cluster.
